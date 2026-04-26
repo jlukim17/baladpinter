@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Auth helpers
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+
+    // User helpers
+    function isValidUser(data) {
+      return data.uid == request.auth.uid 
+        && data.tokens is number 
+        && data.tokens >= 0;
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) 
+        && isValidUser(incoming()) 
+        && incoming().tokens == 10; // Initial 10 tokens
+      allow update: if isOwner(userId) 
+        && isValidUser(incoming())
+        && (
+          // Action: Use token
+          (incoming().tokens == existing().tokens - 1 && incoming().diff(existing()).affectedKeys().hasOnly(['tokens'])) ||
+          // Action: Profile update
+          (incoming().tokens == existing().tokens && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'lastDailyGift']))
+        );
+
+      match /messages/{messageId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) 
+          && incoming().userId == request.auth.uid
+          && incoming().role in ['user', 'ai']
+          && incoming().content is string
+          && incoming().content.size() <= 4000
+          && incoming().timestamp == request.time;
+      }
+    }
+  }
+}

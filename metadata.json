@@ -1,0 +1,11 @@
+{
+  "name": "Balad Pinter",
+  "description": "AI Tutor asyik dan santai (Balad Pinter) untuk siswa SMP & SMA di Indonesia.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "multimodal_understanding"
+  ]
+}

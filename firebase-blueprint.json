@@ -1,0 +1,40 @@
+{
+  "entities": {
+    "users": {
+      "title": "User",
+      "description": "User profile with token balance for AI interactions",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "tokens": { "type": "number", "description": "Current token balance" },
+        "displayName": { "type": "string" },
+        "lastDailyGift": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "tokens"]
+    },
+    "messages": {
+      "title": "Message",
+      "description": "Chat message history",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "ai"] },
+        "content": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "role", "content", "timestamp"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "users",
+      "description": "User profiles"
+    },
+    "users/{userId}/messages/{messageId}": {
+      "schema": "messages",
+      "description": "User message history"
+    }
+  }
+}
